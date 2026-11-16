@@ -1,10 +1,12 @@
 <title>Antiemetic Meteor Quiz</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
-/* Layout: one-column phone screen — status bar, falling-meteor timer, question, four big tap targets. Single dark arcade look by choice. */
+/* Layout: one-column phone screen — status bar, meteor sky with ship, question, four big tap targets. Single dark arcade look by choice. */
 :root {
   --space: #15122e;
   --panel: #221d47;
@@ -18,8 +20,11 @@
   --display: "Press Start 2P", ui-monospace, monospace;
   --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
-html, body { height: 100%; }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
 body {
   background: var(--space);
   background-image: radial-gradient(1px 1px at 20% 30%, #ffffff55 50%, transparent 51%),
@@ -29,96 +34,105 @@ body {
   background-size: 180px 180px, 230px 230px, 310px 310px, 140px 140px;
   color: var(--ink);
   font-family: var(--body);
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.4;
   -webkit-tap-highlight-color: transparent;
 }
 .app {
-  max-width: 520px;
+  max-width: 560px;
   margin: 0 auto;
   min-height: 100%;
-  box-sizing: border-box;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 16px 24px;
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
+  padding-block: max(14px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 h1 {
   font-family: var(--display);
-  font-size: clamp(18px, 6vw, 26px);
+  font-size: clamp(22px, 7vw, 30px);
   line-height: 1.5;
   color: var(--amber);
   text-wrap: balance;
   margin: 0;
   text-shadow: 3px 3px 0 #000;
 }
-.label { font-family: var(--display); font-size: 10px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+.label { font-family: var(--display); font-size: 12px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
 
 /* Start screen */
-.start { display: flex; flex-direction: column; gap: 20px; padding-top: 12px; }
+.start { display: flex; flex-direction: column; gap: 22px; padding-top: 12px; }
 .start p { margin: 0; color: var(--muted); }
-.choice-group { display: flex; flex-direction: column; gap: 8px; }
+.choice-group { display: flex; flex-direction: column; gap: 10px; }
 .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .seg button {
-  background: var(--panel); border: 2px solid var(--line); border-radius: 6px;
-  padding: 12px 6px; font-size: 16px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: var(--panel); border: 2px solid var(--line); border-radius: 8px;
+  padding: 14px 6px; font-size: 18px; display: flex; flex-direction: column; align-items: center; gap: 2px;
 }
-.seg button small { color: var(--muted); font-size: 13px; }
+.seg button small { color: var(--muted); font-size: 15px; }
 .seg button[aria-pressed="true"] { border-color: var(--cyan); background: #2c2660; }
 .primary {
-  background: var(--amber); color: #2a1a00; border: 0; border-radius: 6px;
-  font-family: var(--display); font-size: 14px; padding: 18px; box-shadow: 0 4px 0 #a86a10;
+  background: var(--amber); color: #2a1a00; border: 0; border-radius: 8px;
+  font-family: var(--display); font-size: 16px; padding: 20px; box-shadow: 0 4px 0 #a86a10;
 }
 .primary:active { transform: translateY(3px); box-shadow: 0 1px 0 #a86a10; }
 
 /* HUD */
 .hud { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.hearts { display: flex; gap: 4px; font-size: 20px; color: var(--bad); letter-spacing: 0; }
+.hearts { display: flex; gap: 4px; font-size: 26px; line-height: 1; color: var(--bad); }
 .hearts .lost { color: var(--line); }
-.score { font-family: var(--display); font-size: 14px; color: var(--amber); font-variant-numeric: tabular-nums; }
-.progress { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.score { font-family: var(--display); font-size: 18px; color: var(--amber); font-variant-numeric: tabular-nums; }
+.progress { font-size: 17px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
-/* Meteor timer */
-.sky { position: relative; height: 64px; background: #0e0b22; border: 2px solid var(--line); border-radius: 6px; overflow: hidden; }
-.sky .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--line); }
-.meteor { position: absolute; left: 50%; top: -22px; width: 22px; height: 22px; margin-left: -11px;
-  background: var(--amber); box-shadow: 0 0 0 3px #a86a10 inset, 0 -10px 12px #ffb54766; border-radius: 4px; transform: rotate(45deg); }
-.sky.off .meteor { display: none; }
-.sky.off::after { content: "No timer"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+/* Meteor sky */
+.sky { position: relative; height: clamp(190px, 32vh, 260px); background: #0e0b22; border: 2px solid var(--line); border-radius: 8px; overflow: hidden; }
+.sky .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--line); }
+.meteor { position: absolute; top: -32px; width: 32px; height: 32px; margin-left: -16px;
+  background: var(--amber); box-shadow: 0 0 0 5px #a86a10 inset, 0 -14px 18px #ffb54777; border-radius: 6px; transform: rotate(45deg); }
+.meteor.boom { animation: boom .45s ease-out forwards; }
+@keyframes boom { 0% { background: #fff; } 100% { transform: rotate(45deg) scale(2.6); opacity: 0; } }
+.ship { position: absolute; bottom: 8px; left: 50%; width: 54px; height: 38px; margin-left: -27px; background: var(--cyan);
+  clip-path: polygon(50% 0, 62% 38%, 100% 72%, 100% 100%, 0 100%, 0 72%, 38% 38%); }
+.ship.hurt { animation: shake .35s; background: var(--bad); }
+.laser { position: absolute; height: 5px; margin-top: -2px; background: var(--cyan); box-shadow: 0 0 12px var(--cyan);
+  border-radius: 3px; transform-origin: 0 50%; animation: zap .45s ease-out forwards; }
+@keyframes zap { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
+.sky.hit { animation: flash .5s; }
+@keyframes flash { 30% { background: #5a1a2a; } }
+.sky-note { position: absolute; top: 8px; right: 12px; font-family: var(--display); font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sky-note.low { color: var(--bad); }
 
 .question {
-  background: var(--panel); border: 2px solid var(--line); border-radius: 8px;
-  padding: 18px 16px; font-size: 21px; font-weight: 700; line-height: 1.35; text-wrap: balance; margin: 0;
+  background: var(--panel); border: 2px solid var(--line); border-radius: 10px;
+  padding: 18px 16px; font-size: 23px; font-weight: 700; line-height: 1.3; text-wrap: balance; margin: 0;
 }
 .answers { display: grid; gap: 10px; }
 .answers button {
-  text-align: left; background: #1c1840; border: 2px solid var(--line); border-radius: 8px;
-  padding: 14px 16px; min-height: 56px; font-size: 18px; display: flex; gap: 12px; align-items: center;
+  text-align: left; background: #1c1840; border: 2px solid var(--line); border-radius: 10px;
+  padding: 16px; min-height: 62px; font-size: 20px; display: flex; gap: 14px; align-items: center;
 }
-.answers button .key { font-family: var(--display); font-size: 11px; color: var(--cyan); flex: none; }
+.answers button .key { font-family: var(--display); font-size: 13px; color: var(--cyan); flex: none; }
 .answers button:active { background: #2c2660; }
 .answers button.right { border-color: var(--good); background: #173d33; }
 .answers button.wrong { border-color: var(--bad); background: #47202c; }
 .answers button:disabled { cursor: default; }
-.feedback { min-height: 26px; font-weight: 700; margin: 0; }
+.feedback { min-height: 28px; font-weight: 700; margin: 0; }
 .feedback.good { color: var(--good); }
 .feedback.bad { color: var(--bad); }
 
 /* End screen */
 .end { display: flex; flex-direction: column; gap: 18px; }
-.big { font-family: var(--display); font-size: 34px; color: var(--amber); font-variant-numeric: tabular-nums; }
+.big { font-family: var(--display); font-size: 38px; color: var(--amber); font-variant-numeric: tabular-nums; }
 .review { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.review li { background: var(--panel); border-left: 4px solid var(--bad); border-radius: 4px; padding: 12px 14px; font-size: 16px; }
+.review li { background: var(--panel); border-left: 4px solid var(--bad); border-radius: 4px; padding: 14px; font-size: 18px; }
 .review li b { display: block; color: var(--good); margin-top: 4px; }
-.secondary { background: transparent; border: 2px solid var(--line); border-radius: 6px; padding: 14px; font-size: 16px; }
+.secondary { background: transparent; border: 2px solid var(--line); border-radius: 8px; padding: 16px; font-size: 18px; }
 
 .shake { animation: shake .3s; }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
-@media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .shake, .ship.hurt { animation: none; } }
 </style>
 
 <div class="app" id="app"></div>
@@ -147,8 +161,8 @@ const QUESTIONS = [
   ["Which steroid is used as an antiemetic?","Dexamethasone","Prednisone","Methylprednisolone","Hydrocortisone"]
 ];
 const SPEEDS = { relaxed: { label: "Relaxed", note: "no timer", secs: 0 },
-                 normal:  { label: "Normal",  note: "25 sec",   secs: 25 },
-                 fast:    { label: "Fast",    note: "12 sec",   secs: 12 } };
+                 normal:  { label: "Normal",  note: "12 sec",   secs: 12 },
+                 fast:    { label: "Fast",    note: "7 sec",    secs: 7 } };
 const MAX_LIVES = 5;
 const app = document.getElementById("app");
 let speed = "normal";
@@ -164,7 +178,7 @@ function showStart() {
   app.innerHTML = `
     <section class="start">
       <h1>Antiemetic<br>Meteor Quiz</h1>
-      <p>${QUESTIONS.length} questions. Tap the right answer before the meteor lands. You have ${MAX_LIVES} lives.</p>
+      <p>${QUESTIONS.length} questions. Tap the right answer to blast the meteor before it lands. You have ${MAX_LIVES} lives.</p>
       <div class="choice-group">
         <span class="label">Speed</span>
         <div class="seg" role="group" aria-label="Speed">
@@ -203,7 +217,11 @@ function showQuestion() {
   const secs = SPEEDS[speed].secs;
   app.innerHTML = `
     ${hud()}
-    <div class="sky ${secs ? "" : "off"}" id="sky"><div class="meteor" id="meteor"></div><div class="ground"></div></div>
+    <div class="sky" id="sky">
+      <div class="meteor" id="meteor" style="left:${15 + Math.round(Math.random() * 70)}%${secs ? "" : ";top:22%"}"></div>
+      ${secs ? `<span class="sky-note" id="secs">${secs}s</span>` : ""}
+      <div class="ship" id="ship"></div><div class="ground"></div>
+    </div>
     <p class="question">${esc(q)}</p>
     <div class="answers" id="answers">
       ${opts.map((o, i) => `<button type="button" id="opt-${i}" data-val="${esc(o)}"><span class="key">${"ABCD"[i]}</span><span>${esc(o)}</span></button>`).join("")}
@@ -216,18 +234,40 @@ function showQuestion() {
 
 function startTimer(secs, onEnd) {
   stopTimer();
-  const meteor = document.getElementById("meteor"), sky = document.getElementById("sky");
+  const meteor = document.getElementById("meteor"), sky = document.getElementById("sky"), note = document.getElementById("secs");
   deadline = performance.now() + secs * 1000;
   const tick = now => {
     const left = Math.max(0, deadline - now), frac = 1 - left / (secs * 1000);
-    const travel = sky.clientHeight - 6 + 22 - 18;
-    meteor.style.top = (-22 + travel * frac) + "px";
+    meteor.style.top = (-32 + (sky.clientHeight - 8) * frac) + "px";
+    if (note) { note.textContent = Math.ceil(left / 1000) + "s"; note.classList.toggle("low", left < 3000); }
     if (left <= 0) { timerId = null; onEnd(); return; }
     timerId = requestAnimationFrame(tick);
   };
   timerId = requestAnimationFrame(tick);
 }
 function stopTimer() { if (timerId) cancelAnimationFrame(timerId); timerId = null; }
+
+function fireLaser() {
+  const sky = document.getElementById("sky"), meteor = document.getElementById("meteor"), ship = document.getElementById("ship");
+  const s = sky.getBoundingClientRect(), m = meteor.getBoundingClientRect(), p = ship.getBoundingClientRect();
+  const x1 = p.left + p.width / 2 - s.left, y1 = p.top - s.top;
+  const x2 = m.left + m.width / 2 - s.left, y2 = m.top + m.height / 2 - s.top;
+  const laser = document.createElement("div");
+  laser.className = "laser";
+  laser.style.left = x1 + "px"; laser.style.top = y1 + "px";
+  laser.style.width = Math.hypot(x2 - x1, y2 - y1) + "px";
+  laser.style.transform = `rotate(${Math.atan2(y2 - y1, x2 - x1)}rad)`;
+  sky.appendChild(laser);
+  meteor.classList.add("boom");
+}
+
+function meteorImpact() {
+  const sky = document.getElementById("sky"), meteor = document.getElementById("meteor");
+  meteor.style.top = (sky.clientHeight - 8 - 32) + "px";
+  sky.classList.add("hit");
+  document.getElementById("ship").classList.add("hurt");
+  meteor.classList.add("boom");
+}
 
 function resolve(val, answer, q) {
   stopTimer();
@@ -237,17 +277,20 @@ function resolve(val, answer, q) {
     if (b.dataset.val === answer) b.classList.add("right");
     else if (b.dataset.val === val) b.classList.add("wrong");
   });
+  const note = document.getElementById("secs"); if (note) note.remove();
   if (val === answer) {
+    fireLaser();
     streak++; score += 100 + (streak > 1 ? (streak - 1) * 20 : 0);
     fb.className = "feedback good";
-    fb.textContent = streak > 1 ? `Correct! Streak ×${streak}` : "Correct!";
+    fb.textContent = streak > 1 ? `Direct hit! Streak ×${streak}` : "Direct hit!";
   } else {
+    meteorImpact();
     streak = 0; lives--; missed.push([q, answer]);
     fb.className = "feedback bad";
     fb.textContent = val === null ? `Time's up. Answer: ${answer}` : `Answer: ${answer}`;
     app.querySelector(".question").classList.add("shake");
   }
-  const h = app.querySelector(".hud"); h.outerHTML = hud();
+  app.querySelector(".hud").outerHTML = hud();
   const done = lives <= 0 || idx + 1 >= deck.length;
   const next = document.createElement("button");
   next.type = "button"; next.className = "primary"; next.id = "next";
