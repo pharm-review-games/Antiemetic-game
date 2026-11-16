@@ -1,0 +1,279 @@
+<title>Antiemetic Meteor Quiz</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one-column phone screen — status bar, falling-meteor timer, question, four big tap targets. Single dark arcade look by choice. */
+:root {
+  --space: #15122e;
+  --panel: #221d47;
+  --line: #3b3474;
+  --ink: #f2efff;
+  --muted: #a9a3d6;
+  --amber: #ffb547;
+  --cyan: #5fd4e8;
+  --good: #4fd18b;
+  --bad: #ff6b7a;
+  --display: "Press Start 2P", ui-monospace, monospace;
+  --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--space);
+  background-image: radial-gradient(1px 1px at 20% 30%, #ffffff55 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 80%, #ffffff44 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 85% 15%, #ffffff66 50%, transparent 51%),
+    radial-gradient(1px 1px at 40% 65%, #ffffff33 50%, transparent 51%);
+  background-size: 180px 180px, 230px 230px, 310px 310px, 140px 140px;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.4;
+  -webkit-tap-highlight-color: transparent;
+}
+.app {
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+h1 {
+  font-family: var(--display);
+  font-size: clamp(18px, 6vw, 26px);
+  line-height: 1.5;
+  color: var(--amber);
+  text-wrap: balance;
+  margin: 0;
+  text-shadow: 3px 3px 0 #000;
+}
+.label { font-family: var(--display); font-size: 10px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+
+/* Start screen */
+.start { display: flex; flex-direction: column; gap: 20px; padding-top: 12px; }
+.start p { margin: 0; color: var(--muted); }
+.choice-group { display: flex; flex-direction: column; gap: 8px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.seg button {
+  background: var(--panel); border: 2px solid var(--line); border-radius: 6px;
+  padding: 12px 6px; font-size: 16px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.seg button small { color: var(--muted); font-size: 13px; }
+.seg button[aria-pressed="true"] { border-color: var(--cyan); background: #2c2660; }
+.primary {
+  background: var(--amber); color: #2a1a00; border: 0; border-radius: 6px;
+  font-family: var(--display); font-size: 14px; padding: 18px; box-shadow: 0 4px 0 #a86a10;
+}
+.primary:active { transform: translateY(3px); box-shadow: 0 1px 0 #a86a10; }
+
+/* HUD */
+.hud { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.hearts { display: flex; gap: 4px; font-size: 20px; color: var(--bad); letter-spacing: 0; }
+.hearts .lost { color: var(--line); }
+.score { font-family: var(--display); font-size: 14px; color: var(--amber); font-variant-numeric: tabular-nums; }
+.progress { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Meteor timer */
+.sky { position: relative; height: 64px; background: #0e0b22; border: 2px solid var(--line); border-radius: 6px; overflow: hidden; }
+.sky .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--line); }
+.meteor { position: absolute; left: 50%; top: -22px; width: 22px; height: 22px; margin-left: -11px;
+  background: var(--amber); box-shadow: 0 0 0 3px #a86a10 inset, 0 -10px 12px #ffb54766; border-radius: 4px; transform: rotate(45deg); }
+.sky.off .meteor { display: none; }
+.sky.off::after { content: "No timer"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+
+.question {
+  background: var(--panel); border: 2px solid var(--line); border-radius: 8px;
+  padding: 18px 16px; font-size: 21px; font-weight: 700; line-height: 1.35; text-wrap: balance; margin: 0;
+}
+.answers { display: grid; gap: 10px; }
+.answers button {
+  text-align: left; background: #1c1840; border: 2px solid var(--line); border-radius: 8px;
+  padding: 14px 16px; min-height: 56px; font-size: 18px; display: flex; gap: 12px; align-items: center;
+}
+.answers button .key { font-family: var(--display); font-size: 11px; color: var(--cyan); flex: none; }
+.answers button:active { background: #2c2660; }
+.answers button.right { border-color: var(--good); background: #173d33; }
+.answers button.wrong { border-color: var(--bad); background: #47202c; }
+.answers button:disabled { cursor: default; }
+.feedback { min-height: 26px; font-weight: 700; margin: 0; }
+.feedback.good { color: var(--good); }
+.feedback.bad { color: var(--bad); }
+
+/* End screen */
+.end { display: flex; flex-direction: column; gap: 18px; }
+.big { font-family: var(--display); font-size: 34px; color: var(--amber); font-variant-numeric: tabular-nums; }
+.review { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.review li { background: var(--panel); border-left: 4px solid var(--bad); border-radius: 4px; padding: 12px 14px; font-size: 16px; }
+.review li b { display: block; color: var(--good); margin-top: 4px; }
+.secondary { background: transparent; border: 2px solid var(--line); border-radius: 6px; padding: 14px; font-size: 16px; }
+
+.shake { animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+@media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+</style>
+
+<div class="app" id="app"></div>
+
+<script>
+const QUESTIONS = [
+  ["Which class is associated with serotonin syndrome?","5HT3 antagonists","NK1 antagonists","Antacids","Bulk-forming laxatives"],
+  ["Which adverse effect is caused by dopamine blockade?","Extrapyramidal symptoms","Dry mouth","Hyperglycemia","Bradycardia"],
+  ["What is the brand name of ondansetron?","Zofran","Phenergan","Diclegis","Emend"],
+  ["Which antiemetic is available as a transdermal patch?","Scopolamine","Prochlorperazine","Ondansetron","Lorazepam"],
+  ["Which medication is used for anticipatory CINV?","Lorazepam","Ondansetron","Haloperidol","Loperamide"],
+  ["Which class causes dry mouth and urinary retention?","Antihistamines","NK1 antagonists","Cannabinoids","Corticosteroids"],
+  ["Which antiemetic also stimulates appetite?","Dronabinol","Ondansetron","Scopolamine","Famotidine"],
+  ["Hot showers and capsaicin cream can help with symptoms of ....?","Cannabinoid hyperemesis","Motion sickness","Hyperemesis gravidum","Post Op"],
+  ["What is the best way to prevent the spread of norovirus?","Soap and water","Hand sanitizer","Antibiotics","Goggles"],
+  ["Which drug is first line for pregnancy associated nausea?","Pyridoxine","Dronabinol","Olanzapine","Ondansetron"],
+  ["What is the brand name of promethazine?","Phenergan","Compazine","Benadryl","Bonine"],
+  ["Which antiemetic blocks substance P?","Aprepitant","Ondansetron","Dimenhydrinate","Dronabinol"],
+  ["Which antiemetic does NOT prolong QT?","Scopolamine","Ondansetron","Prochlorperazine","Haloperidol"],
+  ["Which type of ADR is Tardive Dyskinesia?","Extrapyramidal symptoms","QTc prolongation","Serotonin syndrome","Anticholinergics"],
+  ["What is the brand name of lorazepam?","Ativan","Valium","Aloxi","Compazine"],
+  ["Which is NOT a type of CINV?","Activity","Anticipatory","Delayed","Refractory"],
+  ["How many antiemetics do you give for high emetogenicity chemo?","4","2","3","5"],
+  ["Which atypical antipsychotic can be used as an antiemetic?","Olanzapine","Risperidone","Quetiapine","Aripiprazole"],
+  ["What is metoclopramide's mechanism of action?","Dopamine antagonist","NK1 antagonist","Histamine antagonist","Muscarinic antagonist"],
+  ["Which steroid is used as an antiemetic?","Dexamethasone","Prednisone","Methylprednisolone","Hydrocortisone"]
+];
+const SPEEDS = { relaxed: { label: "Relaxed", note: "no timer", secs: 0 },
+                 normal:  { label: "Normal",  note: "25 sec",   secs: 25 },
+                 fast:    { label: "Fast",    note: "12 sec",   secs: 12 } };
+const MAX_LIVES = 5;
+const app = document.getElementById("app");
+let speed = "normal";
+try { const s = localStorage.getItem("ae-speed"); if (s && SPEEDS[s]) speed = s; } catch (e) {}
+
+let deck, idx, lives, score, streak, missed, timerId, deadline;
+
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function showStart() {
+  stopTimer();
+  app.innerHTML = `
+    <section class="start">
+      <h1>Antiemetic<br>Meteor Quiz</h1>
+      <p>${QUESTIONS.length} questions. Tap the right answer before the meteor lands. You have ${MAX_LIVES} lives.</p>
+      <div class="choice-group">
+        <span class="label">Speed</span>
+        <div class="seg" role="group" aria-label="Speed">
+          ${Object.entries(SPEEDS).map(([k, v]) =>
+            `<button type="button" id="speed-${k}" data-speed="${k}" aria-pressed="${k === speed}">${v.label}<small>${v.note}</small></button>`).join("")}
+        </div>
+      </div>
+      <button type="button" class="primary" id="play">Play</button>
+    </section>`;
+  app.querySelectorAll("[data-speed]").forEach(b => b.onclick = () => {
+    speed = b.dataset.speed;
+    try { localStorage.setItem("ae-speed", speed); } catch (e) {}
+    app.querySelectorAll("[data-speed]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  });
+  document.getElementById("play").onclick = startGame;
+}
+
+function startGame() {
+  deck = shuffle(QUESTIONS); idx = 0; lives = MAX_LIVES; score = 0; streak = 0; missed = [];
+  showQuestion();
+}
+
+function hud() {
+  let hearts = "";
+  for (let i = 0; i < MAX_LIVES; i++) hearts += `<span class="${i < lives ? "" : "lost"}" aria-hidden="true">♥</span>`;
+  return `<div class="hud">
+      <div class="hearts" aria-label="${lives} lives left">${hearts}</div>
+      <div class="progress">${Math.min(idx + 1, deck.length)} / ${deck.length}</div>
+      <div class="score" aria-label="Score">${score}</div>
+    </div>`;
+}
+
+function showQuestion() {
+  const [q, answer, ...wrong] = deck[idx];
+  const opts = shuffle([answer, ...wrong]);
+  const secs = SPEEDS[speed].secs;
+  app.innerHTML = `
+    ${hud()}
+    <div class="sky ${secs ? "" : "off"}" id="sky"><div class="meteor" id="meteor"></div><div class="ground"></div></div>
+    <p class="question">${esc(q)}</p>
+    <div class="answers" id="answers">
+      ${opts.map((o, i) => `<button type="button" id="opt-${i}" data-val="${esc(o)}"><span class="key">${"ABCD"[i]}</span><span>${esc(o)}</span></button>`).join("")}
+    </div>
+    <p class="feedback" id="fb" aria-live="polite"></p>`;
+  app.querySelectorAll("#answers button").forEach(b => b.onclick = () => resolve(b.dataset.val, answer, q));
+  window.scrollTo(0, 0);
+  if (secs) startTimer(secs, () => resolve(null, answer, q));
+}
+
+function startTimer(secs, onEnd) {
+  stopTimer();
+  const meteor = document.getElementById("meteor"), sky = document.getElementById("sky");
+  deadline = performance.now() + secs * 1000;
+  const tick = now => {
+    const left = Math.max(0, deadline - now), frac = 1 - left / (secs * 1000);
+    const travel = sky.clientHeight - 6 + 22 - 18;
+    meteor.style.top = (-22 + travel * frac) + "px";
+    if (left <= 0) { timerId = null; onEnd(); return; }
+    timerId = requestAnimationFrame(tick);
+  };
+  timerId = requestAnimationFrame(tick);
+}
+function stopTimer() { if (timerId) cancelAnimationFrame(timerId); timerId = null; }
+
+function resolve(val, answer, q) {
+  stopTimer();
+  const fb = document.getElementById("fb");
+  app.querySelectorAll("#answers button").forEach(b => {
+    b.disabled = true;
+    if (b.dataset.val === answer) b.classList.add("right");
+    else if (b.dataset.val === val) b.classList.add("wrong");
+  });
+  if (val === answer) {
+    streak++; score += 100 + (streak > 1 ? (streak - 1) * 20 : 0);
+    fb.className = "feedback good";
+    fb.textContent = streak > 1 ? `Correct! Streak ×${streak}` : "Correct!";
+  } else {
+    streak = 0; lives--; missed.push([q, answer]);
+    fb.className = "feedback bad";
+    fb.textContent = val === null ? `Time's up. Answer: ${answer}` : `Answer: ${answer}`;
+    app.querySelector(".question").classList.add("shake");
+  }
+  const h = app.querySelector(".hud"); h.outerHTML = hud();
+  const done = lives <= 0 || idx + 1 >= deck.length;
+  const next = document.createElement("button");
+  next.type = "button"; next.className = "primary"; next.id = "next";
+  next.textContent = done ? "See results" : "Next question";
+  next.onclick = () => { if (done) showEnd(); else { idx++; showQuestion(); } };
+  fb.after(next);
+  next.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function showEnd() {
+  const answered = idx + 1, correct = answered - missed.length;
+  const won = lives > 0;
+  app.innerHTML = `
+    <section class="end">
+      <h1>${won ? "You cleared the sky!" : "Out of lives"}</h1>
+      <div><span class="label">Score</span><div class="big">${score}</div></div>
+      <p style="margin:0">${correct} of ${deck.length} correct${won ? "" : ` (stopped at question ${answered})`}.</p>
+      ${missed.length ? `<span class="label">Review what you missed</span>
+        <ul class="review">${missed.map(([q, a]) => `<li>${esc(q)}<b>${esc(a)}</b></li>`).join("")}</ul>` : `<p style="margin:0;color:var(--good)">Perfect round, no misses.</p>`}
+      <button type="button" class="primary" id="again">Play again</button>
+      <button type="button" class="secondary" id="menu">Change speed</button>
+    </section>`;
+  document.getElementById("again").onclick = startGame;
+  document.getElementById("menu").onclick = showStart;
+  window.scrollTo(0, 0);
+}
+
+showStart();
+</script>
